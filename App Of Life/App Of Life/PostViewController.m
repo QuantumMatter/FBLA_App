@@ -137,7 +137,7 @@
     if (!post) {
         post = [[PostObject alloc] init];
     }
-    post = [postArray objectAtIndex:indexPath.row];
+    post = [applicablePosts objectAtIndex: [applicablePosts count] - (indexPath.row + 1)];
     [cell setMessage:post.message];
     cell.Name.text = @"Test";
     cell.image.image = [UIImage imageNamed:@"OK"];
@@ -234,7 +234,8 @@
 -(void) updateApplicablePosts {
     if (!applicableMemberships) {
         return;
-    } if (!postArray) {
+    }
+    if (!postArray) {
         return;
     }
     if ([groupType isEqualToString:@"subGroup"]) {
