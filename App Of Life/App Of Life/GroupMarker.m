@@ -7,7 +7,7 @@
 //
 
 #import "GroupMarker.h"
-#import "GroupHomeController.h"
+#import "GroupControllerViewController.h"
 
 @implementation GroupMarker
 
@@ -20,7 +20,7 @@
 */
 - (IBAction)go:(id)sender {
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
-    GroupHomeController *destination = [storyboard instantiateViewControllerWithIdentifier:@"GroupHomeController"];
+    GroupControllerViewController *destination = [storyboard instantiateViewControllerWithIdentifier:@"GroupHomeController"];
 }
 
 @end
