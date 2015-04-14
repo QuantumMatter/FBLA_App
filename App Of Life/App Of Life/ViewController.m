@@ -19,6 +19,7 @@
 #import "GroupParser.h"
 #import "GroupControllerViewController.h"
 #import "UserViewController.h"
+#import <CoreLocation/CoreLocation.h>
 
 @interface ViewController ()
 
@@ -29,6 +30,8 @@
 @end
 
 @implementation ViewController {
+    float zip;
+    
     GMSMapView *mapView;
     NSMutableArray *userArray;
     NSMutableDictionary *markerDictionary;
@@ -40,15 +43,23 @@
     UserObject *destinationUser;
     
     GroupParser *gParser;
+    
+    CLLocationManager *locationManager;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    locationManager = [[CLLocationManager alloc] init];
+    locationManager.distanceFilter = kCLDistanceFilterNone;
+    locationManager.desiredAccuracy = kCLLocationAccuracyBest;
+    [locationManager startUpdatingLocation];
+    
     [self rotateButton];
     [self loadGroups];
     CGRect origin = self.bounds.frame;
-    GMSCameraPosition *camera = [GMSCameraPosition cameraWithLatitude:39.8887038
-                                                            longitude:-105.012394
+    GMSCameraPosition *camera = [GMSCameraPosition cameraWithLatitude:locationManager.location.coordinate.latitude
+                                                            longitude:locationManager.location.coordinate.longitude
                                                                  zoom:10
                                                               bearing:10
                                                          viewingAngle:5];
@@ -218,6 +229,23 @@
     } else {
         return;
     }
+}
+
+-(NSInteger) getZipCode {
+    zip = -1;
+    CLLocationCoordinate2D cooridinate;
+    cooridinate.latitude = locationManager.location.coordinate.latitude;
+    cooridinate.longitude = locationManager.location.coordinate.longitude;
+    
+    CLGeocoder *geocoder = [[CLGeocoder alloc] init];
+    [geocoder reverseGeocodeLocation:locationManager.location completionHandler:^(NSArray *placemarks, NSError *error) {
+        if (!error) {
+            CLPlacemark *placemark = [placemarks objectAtIndex:0];
+            NSString *zipCode = [[NSString alloc] initWithString:placemark.postalCode];
+            zip = [zipCode floatValue];
+        }
+    }];
+    return zip;
 }
 
 -(void) viewDidDisappear:(BOOL)animated {

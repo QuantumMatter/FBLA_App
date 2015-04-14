@@ -10,20 +10,32 @@
 #import "TransitionOperator.h"
 #import "UserObject.h"
 #import "DBManager.h"
+#import <CoreLocation/CoreLocation.h>
 
 @interface NewPostViewController ()
 
 @end
 
 @implementation NewPostViewController {
+    float zip;
+    NSString *stringZip;
+    
     NSInteger ID;
     NSString *type;
     
     UserObject *_currentUser;
+    
+    CLLocationManager *locationManager;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    locationManager = [[CLLocationManager alloc] init];
+    locationManager.distanceFilter = kCLDistanceFilterNone;
+    locationManager.desiredAccuracy = kCLLocationAccuracyBest;
+    [locationManager startUpdatingLocation];
+    
     [self updateCurrentUser];
     // Do any additional setup after loading the view.
 }
@@ -71,10 +83,27 @@
     message = [message stringByReplacingOccurrencesOfString:@" " withString:@"0123456789"];
     NSLog(message);
     NSString *content = @" ";
-    NSString *zip = @"0";
-    NSString *time = @"2015-01-15T17:52";
-    //NSString *time = [NSString stringWithFormat:@"%f",[[NSDate date] timeIntervalSince1970] * 1000];
-    NSString *stringRequest = [NSString stringWithFormat:@"UserID=%@&GroupID=%@&Membership=%@&Content=%@&Zip=%@&Message=%@&TimePosted=%@", UserID, GroupID, membership, content, zip, message, time];
+    
+    //NSString *zip = [NSString  stringWithFormat:@"%f", [self getZipCode]];
+    CLGeocoder *geocoder = [[CLGeocoder alloc] init];
+    [geocoder reverseGeocodeLocation:locationManager.location completionHandler:^(NSArray *placemarks, NSError *error) {
+        if (!error) {
+            CLPlacemark *placemark = [placemarks objectAtIndex:0];
+            stringZip = placemark.postalCode;
+        }
+    }];
+    
+    [self un];
+    
+    NSDate *newDate;
+    NSDateComponents *dateComponents = [[NSCalendar currentCalendar] components:~ NSCalendarUnitTimeZone fromDate:[NSDate date]];
+    newDate = [[NSCalendar currentCalendar] dateFromComponents:dateComponents];
+    NSString *time = [NSString stringWithFormat:@"%@", newDate];
+    NSLog(time);
+    NSArray *timeA = [time componentsSeparatedByString:@" "];
+    NSString *realTime = [NSString stringWithFormat:@"%@T%@", [timeA objectAtIndex:0], [timeA objectAtIndex:1]];
+    
+    NSString *stringRequest = [NSString stringWithFormat:@"UserID=%@&GroupID=%@&Membership=%@&Content=%@&Zip=%@&Message=%@&TimePosted=%@", UserID, GroupID, membership, content, stringZip, message, realTime];
     NSLog(stringRequest);
     NSData *postData = [stringRequest dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
     NSString *dataLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
@@ -100,8 +129,17 @@
     NSString *message = self._inputField.text;
     message = [message stringByReplacingOccurrencesOfString:@" " withString:@"&*%^"];
     NSString *content = @"__";
-    NSString *zip = @"__";
-    NSString *stringRequest = [NSString stringWithFormat:@"UserID=%@&GroupID=%@&membership=%@&content=%@&zip=%@&message=%@", UserID, GroupID, membership, content, zip, message];
+    NSString *zip = [NSString  stringWithFormat:@"%f", [self getZipCode]];
+    
+    NSDate *newDate;
+    NSDateComponents *dateComponents = [[NSCalendar currentCalendar] components:~ NSCalendarUnitTimeZone fromDate:[NSDate date]];
+    newDate = [[NSCalendar currentCalendar] dateFromComponents:dateComponents];
+    NSString *time = [NSString stringWithFormat:@"%@", newDate];
+    NSLog(time);
+    NSArray *timeA = [time componentsSeparatedByString:@" "];
+    NSString *realTime = [NSString stringWithFormat:@"%@T%@", [timeA objectAtIndex:0], [timeA objectAtIndex:1]];
+    
+    NSString *stringRequest = [NSString stringWithFormat:@"UserID=%@&GroupID=%@&membership=%@&content=%@&zip=%@&message=%@&TimePosted=%@", UserID, GroupID, membership, content, zip, message, realTime];
     NSData *postData = [stringRequest dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
     NSString *dataLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:URL];
@@ -142,6 +180,23 @@
     } else {
         return;
     }
+}
+
+-(float) getZipCode {
+    CLLocationCoordinate2D cooridinate;
+    cooridinate.latitude = locationManager.location.coordinate.latitude;
+    cooridinate.longitude = locationManager.location.coordinate.longitude;
+    
+    CLGeocoder *geocoder = [[CLGeocoder alloc] init];
+    [geocoder reverseGeocodeLocation:locationManager.location completionHandler:^(NSArray *placemarks, NSError *error) {
+        if (!error) {
+            CLPlacemark *placemark = [placemarks objectAtIndex:0];
+            NSString *zipCode = [[NSString alloc] initWithString:placemark.postalCode];
+            zip = [zipCode floatValue];
+        }
+    }];
+    return zip;
+    
 }
 
 @end
