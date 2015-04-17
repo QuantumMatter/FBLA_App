@@ -9,6 +9,8 @@
 #import "AppDelegate.h"
 #import "LocationParser.h"
 #import <GoogleMaps/GoogleMaps.h>
+#import "DBManager.h"
+#import <CoreLocation/CoreLocation.h>
 
 @interface AppDelegate ()
 
@@ -16,14 +18,23 @@
 
 @implementation AppDelegate {
     NSTimer *updateLocation;
-    NSNumber *locationID;
-    NSNumber *userID;
+    NSInteger locationID;
+    NSInteger *userID;
+    LocationParser *locationParser;
+    NSMutableArray *locationArray;
+    
+    CLLocationManager *locationManager;
 }
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     [GMSServices provideAPIKey:@"AIzaSyBxEDr9ukfi-F_BNbZqbXhsZ_N_Rl_y1ak"];
+    locationID = -1;
     self._currentUser = [[UserObject alloc] init];
+    locationManager = [[CLLocationManager alloc] init];
+    locationManager.desiredAccuracy = kCLLocationAccuracyBest;
+    locationManager.distanceFilter = kCLDistanceFilterNone;
+    [locationManager startUpdatingLocation];
     [self startUpdatingLocation];
     return YES;
 }
@@ -36,9 +47,32 @@
 }
 
 -(void) updateUserLocation {
-    if (!locationID) {
-        LocationPa
+    if (!locationParser) {
+        locationParser = [[LocationParser alloc] init];
     }
+    if (!userID) {
+        UserObject *temp = [self getCurrentUser];
+        if (temp) {
+            userID = temp.userID;
+        } else {
+            return;
+        }
+    }
+    if (locationID == -1) {//ERROR
+        locationArray = [locationParser array];
+    }
+    for (int i = 0; i < [locationArray count]; i++) {
+        LocationObject *location = [locationArray objectAtIndex:i];
+        if (location.userID == userID) {
+            locationID = location.ID;
+            break;
+        }
+    }
+    [locationParser updateLocationFromID:locationID
+                                Latitude:locationManager.location.coordinate.latitude
+                               Longitude:locationManager.location.coordinate.longitude
+                                  UserID:userID];
+    [locationManager startUpdatingLocation];
 }
 
 -(void) stopUpdatingLocation {
@@ -49,7 +83,24 @@
 }
 
 -(UserObject *) getCurrentUser {
-    return self._currentUser;
+    DBManager *db = [[DBManager alloc] initWithDatabaseFilename:@"userdb.sqlite"];
+    NSArray *array = [db loadDataFromDB:@"Select * from user"];
+    if ([array count] > 0) {
+        NSArray *userArray = [array objectAtIndex:0];
+        NSInteger uID = [[userArray objectAtIndex:0] integerValue];
+        NSString *username= [userArray objectAtIndex:1];
+        double latitude = [[userArray objectAtIndex:2] doubleValue];
+        double longitude = [[userArray objectAtIndex:3] doubleValue];
+        if (!self._currentUser) {
+            self._currentUser = [[UserObject alloc] init];
+        }
+        self._currentUser.userID = uID;
+        self._currentUser.userName = username;
+        self._currentUser.latitude = latitude;
+        self._currentUser.longitude = longitude;
+        return self._currentUser;
+    }
+    return nil;
 }
 
 -(void) setCurrentUser:(UserObject *)user {

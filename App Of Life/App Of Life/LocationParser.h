@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "LocationObject.h"
 
 @interface LocationParser : NSObject
 
@@ -15,5 +16,9 @@
 -(NSMutableArray *) array;
 
 -(BOOL) finished;
+
+-(void) updateLocationFromObject:(LocationObject *)object;
+
+-(void) updateLocationFromID:(NSInteger *)ID Latitude:(double)Latitude Longitude:(double)longitude UserID:(NSInteger *)UserID;
 
 @end

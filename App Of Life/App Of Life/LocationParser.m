@@ -27,6 +27,36 @@
     return self;
 }
 
+-(void) updateLocationFromID:(NSInteger)ID Latitude:(double)Latitude Longitude:(double)Longitude UserID:(NSInteger)UserID {
+    NSString *stringURL = [NSString stringWithFormat:@"http://24.8.58.134/david/api/LocationAPI/%ld", (long) ID];
+    NSURL *url = [NSURL URLWithString:stringURL];
+    NSString *requestString = [NSString stringWithFormat:@"ID=%ld&UserID=%ld&Latitude=%f&Longitude=%f", (long)ID, (long)UserID, Latitude, Longitude];
+    NSData *data = [requestString dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+    NSString *dataLength = [NSString stringWithFormat:@"%lu", (unsigned long)[data length]];
+    
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+    [request setURL:url];
+    [request setHTTPMethod:@"PUT"];
+    [request setValue:dataLength forHTTPHeaderField:@"Content-Length"];
+    [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+    [request setHTTPBody:data];
+    NSURLConnection *connection = [[NSURLConnection alloc] initWithRequest:request delegate:self];
+    if (connection) {
+        NSLog(@"Connection Successful - PUT");
+    } else {
+        NSLog(@"Connection Failed - PUT");
+    }
+
+    
+}
+
+-(void) updateLocationFromObject:(LocationObject *)object {
+    [self updateLocationFromID:object.ID
+                      Latitude:object.latitude
+                     Longitude:object.longitude
+                        UserID:object.userID];
+}
+
 -(BOOL) finished {
     return finished;
 }
@@ -88,7 +118,7 @@
         }
         
         location.ID = ID;
-        location.userID = ID;
+        location.userID = userID;
         location.longitude = longitude;
         location.latitude = latitude;
         
