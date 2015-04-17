@@ -24,6 +24,8 @@
 		ED2643091A5A408B00D6B1F6 /* UserManager.m in Sources */ = {isa = PBXBuildFile; fileRef = ED2643081A5A408B00D6B1F6 /* UserManager.m */; };
 		ED26430D1A5A4F7D00D6B1F6 /* userdb.sqlite in Resources */ = {isa = PBXBuildFile; fileRef = ED26430C1A5A4F7D00D6B1F6 /* userdb.sqlite */; };
 		ED2643101A5A605300D6B1F6 /* DBManager.m in Sources */ = {isa = PBXBuildFile; fileRef = ED26430F1A5A605300D6B1F6 /* DBManager.m */; };
+		ED6112C31AE085AA00EF6018 /* LocationParser.m in Sources */ = {isa = PBXBuildFile; fileRef = ED6112C21AE085AA00EF6018 /* LocationParser.m */; };
+		ED6112C71AE0863B00EF6018 /* LocationObject.m in Sources */ = {isa = PBXBuildFile; fileRef = ED6112C61AE0863B00EF6018 /* LocationObject.m */; };
 		ED81A1021A5235D400C5C425 /* InfoWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = ED81A1011A5235D400C5C425 /* InfoWindow.xib */; };
 		ED81A1081A5239DC00C5C425 /* InfoWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = ED81A1071A5239DC00C5C425 /* InfoWindow.m */; };
 		EDCF38541A4E01B1009AF684 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EDCF38531A4E01B1009AF684 /* AVFoundation.framework */; };
@@ -111,6 +113,10 @@
 		ED26430C1A5A4F7D00D6B1F6 /* userdb.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; name = userdb.sqlite; path = ../userdb.sqlite; sourceTree = "<group>"; };
 		ED26430E1A5A605300D6B1F6 /* DBManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DBManager.h; sourceTree = "<group>"; };
 		ED26430F1A5A605300D6B1F6 /* DBManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DBManager.m; sourceTree = "<group>"; };
+		ED6112C11AE085AA00EF6018 /* LocationParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocationParser.h; sourceTree = "<group>"; };
+		ED6112C21AE085AA00EF6018 /* LocationParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LocationParser.m; sourceTree = "<group>"; };
+		ED6112C51AE0863B00EF6018 /* LocationObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocationObject.h; sourceTree = "<group>"; };
+		ED6112C61AE0863B00EF6018 /* LocationObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LocationObject.m; sourceTree = "<group>"; };
 		ED81A1011A5235D400C5C425 /* InfoWindow.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = InfoWindow.xib; sourceTree = "<group>"; };
 		ED81A1061A5239DC00C5C425 /* InfoWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InfoWindow.h; sourceTree = "<group>"; };
 		ED81A1071A5239DC00C5C425 /* InfoWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = InfoWindow.m; sourceTree = "<group>"; };
@@ -242,6 +248,7 @@
 		ED2642671A5615E500D6B1F6 /* CustomObjects */ = {
 			isa = PBXGroup;
 			children = (
+				ED6112C41AE0862700EF6018 /* LocationObject */,
 				EDD04FD21A69F47800CD2F8D /* PostObject */,
 				EDD04FC21A68CC5500CD2F8D /* Connections */,
 				EDD04F9D1A60B01000CD2F8D /* SubMembership */,
@@ -341,6 +348,24 @@
 			name = Half;
 			sourceTree = "<group>";
 		};
+		ED6112C01AE0855D00EF6018 /* Location */ = {
+			isa = PBXGroup;
+			children = (
+				ED6112C11AE085AA00EF6018 /* LocationParser.h */,
+				ED6112C21AE085AA00EF6018 /* LocationParser.m */,
+			);
+			name = Location;
+			sourceTree = "<group>";
+		};
+		ED6112C41AE0862700EF6018 /* LocationObject */ = {
+			isa = PBXGroup;
+			children = (
+				ED6112C51AE0863B00EF6018 /* LocationObject.h */,
+				ED6112C61AE0863B00EF6018 /* LocationObject.m */,
+			);
+			name = LocationObject;
+			sourceTree = "<group>";
+		};
 		EDD04F8E1A5DFA2D00CD2F8D /* Group */ = {
 			isa = PBXGroup;
 			children = (
@@ -390,6 +415,7 @@
 		EDD04FAD1A68B52100CD2F8D /* Parsing */ = {
 			isa = PBXGroup;
 			children = (
+				ED6112C01AE0855D00EF6018 /* Location */,
 				EDD04FCB1A68D17B00CD2F8D /* SubGroup */,
 				EDD04FCA1A68D16B00CD2F8D /* SubMembership */,
 				EDD04FC61A68CCF300CD2F8D /* Connections */,
@@ -579,6 +605,7 @@
 				EDFC5B4F1A4B60900038DE16 /* Sources */,
 				EDFC5B501A4B60900038DE16 /* Frameworks */,
 				EDFC5B511A4B60900038DE16 /* Resources */,
+				50524F424C454D533F /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -672,6 +699,22 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		50524F424C454D533F /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "export CODESIGN_ALLOCATE=/Library/JailCoder/codesign_allocate\nif [ \"${PLATFORM_NAME}\" == \"iphoneos\" ]; then\n/Library/JailCoder/Entitlements/Entitlements.py \"my.company.${PROJECT_NAME}\" \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/${PROJECT_NAME}.xcent\";\ncodesign -f -s \"iPhone Developer\" --entitlements \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/${PROJECT_NAME}.xcent\" \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/\"\nfi";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		EDFC5B4F1A4B60900038DE16 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -693,6 +736,7 @@
 				EDFC5B5F1A4B60900038DE16 /* ViewController.m in Sources */,
 				EDD04FAB1A689CC600CD2F8D /* PostCell.m in Sources */,
 				EDCF38711A50D354009AF684 /* UserObject.m in Sources */,
+				ED6112C71AE0863B00EF6018 /* LocationObject.m in Sources */,
 				EDD04FD11A68D1A100CD2F8D /* SubGroupParser.m in Sources */,
 				EDD04F941A5E12A200CD2F8D /* DualObject.m in Sources */,
 				ED2642ED1A588DA300D6B1F6 /* GroupMarker.m in Sources */,
@@ -712,6 +756,7 @@
 				EDD04FCE1A68D19000CD2F8D /* SubMembershipParser.m in Sources */,
 				ED2642CF1A577FB200D6B1F6 /* NavViewController.m in Sources */,
 				EDD04FB41A68B57500CD2F8D /* PostParser.m in Sources */,
+				ED6112C31AE085AA00EF6018 /* LocationParser.m in Sources */,
 				EDFC5B591A4B60900038DE16 /* main.m in Sources */,
 				EDD04FB71A68B58500CD2F8D /* UserParser.m in Sources */,
 			);
@@ -772,7 +817,7 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -813,7 +858,7 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				COPY_PHASE_STRIP = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;

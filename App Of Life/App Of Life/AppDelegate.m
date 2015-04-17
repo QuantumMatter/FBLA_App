@@ -7,19 +7,45 @@
 //
 
 #import "AppDelegate.h"
+#import "LocationParser.h"
 #import <GoogleMaps/GoogleMaps.h>
 
 @interface AppDelegate ()
 
 @end
 
-@implementation AppDelegate
+@implementation AppDelegate {
+    NSTimer *updateLocation;
+    NSNumber *locationID;
+    NSNumber *userID;
+}
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     [GMSServices provideAPIKey:@"AIzaSyBxEDr9ukfi-F_BNbZqbXhsZ_N_Rl_y1ak"];
     self._currentUser = [[UserObject alloc] init];
+    [self startUpdatingLocation];
     return YES;
+}
+
+-(void) startUpdatingLocation {
+    if (!updateLocation) {
+        updateLocation = [[NSTimer alloc] init];
+        updateLocation = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(updateUserLocation) userInfo:nil repeats:YES];
+    }
+}
+
+-(void) updateUserLocation {
+    if (!locationID) {
+        LocationPa
+    }
+}
+
+-(void) stopUpdatingLocation {
+    if (updateLocation) {
+        [updateLocation invalidate];
+        updateLocation = nil;
+    }
 }
 
 -(UserObject *) getCurrentUser {

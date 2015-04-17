@@ -93,8 +93,6 @@
         }
     }];
     
-    [self un];
-    
     NSDate *newDate;
     NSDateComponents *dateComponents = [[NSCalendar currentCalendar] components:~ NSCalendarUnitTimeZone fromDate:[NSDate date]];
     newDate = [[NSCalendar currentCalendar] dateFromComponents:dateComponents];
@@ -103,7 +101,7 @@
     NSArray *timeA = [time componentsSeparatedByString:@" "];
     NSString *realTime = [NSString stringWithFormat:@"%@T%@", [timeA objectAtIndex:0], [timeA objectAtIndex:1]];
     
-    NSString *stringRequest = [NSString stringWithFormat:@"UserID=%@&GroupID=%@&Membership=%@&Content=%@&Zip=%@&Message=%@&TimePosted=%@", UserID, GroupID, membership, content, stringZip, message, realTime];
+    NSString *stringRequest = [NSString stringWithFormat:@"UserID=%@&GroupID=%@&Membership=%@&Content=%@&Zip=%@&Message=%@&TimePosted=%@", UserID, GroupID, membership, content, stringZip, message, @"2015-04-13T17:24:00"];
     NSLog(stringRequest);
     NSData *postData = [stringRequest dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
     NSString *dataLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
@@ -139,7 +137,7 @@
     NSArray *timeA = [time componentsSeparatedByString:@" "];
     NSString *realTime = [NSString stringWithFormat:@"%@T%@", [timeA objectAtIndex:0], [timeA objectAtIndex:1]];
     
-    NSString *stringRequest = [NSString stringWithFormat:@"UserID=%@&GroupID=%@&membership=%@&content=%@&zip=%@&message=%@&TimePosted=%@", UserID, GroupID, membership, content, zip, message, realTime];
+    NSString *stringRequest = [NSString stringWithFormat:@"UserID=%@&GroupID=%@&membership=%@&content=%@&zip=%@&message=%@&TimePosted=%@", UserID, GroupID, membership, content, zip, message, @"2015-04-13T19:24:00"];
     NSData *postData = [stringRequest dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
     NSString *dataLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:URL];
