@@ -53,6 +53,13 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    parse = [[PostParser alloc] init];
+    uParser = [[UserParser alloc] init];
+    cParser = [[ConnectionParser alloc] init];
+    smParser = [[SubMembershipParser alloc] init];
+    sbParser = [[SubGroupParser alloc] init];
+    
     update = YES;
     [self._postTable setDataSource:self];
     [self._postTable setDelegate:self];
@@ -68,20 +75,12 @@
     [self updateCurrentUser];
     [self updateApplicableConnections];
     [self updateApplicablePosts];
-    
-    parse = [[PostParser alloc] init];
-    uParser = [[UserParser alloc] init];
-    cParser = [[ConnectionParser alloc] init];
-    smParser = [[SubMembershipParser alloc] init];
-    sbParser = [[SubGroupParser alloc] init];
 }
 
 -(void) setArrays {
     if (subGroupArray == nil) {
-        
         subGroupArray = [[NSMutableArray alloc] init];
-        subGroupArray = [sbParser array];
-        
+        subGroupArray = [sbParser array];        
     } else if (postArray == nil) {
         postArray = [[NSMutableArray alloc] init];
         postArray = [parse array];
@@ -192,8 +191,6 @@
         }
         _currentUser.userID = uID;
         _currentUser.userName = username;
-        _currentUser.latitude = latitude;
-        _currentUser.longitude = longitude;
     }
 }
 

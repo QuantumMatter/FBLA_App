@@ -68,11 +68,14 @@
             break;
         }
     }
-    [locationParser updateLocationFromID:locationID
+    [locationParser updateLocationFromID:locationID //Ignore
                                 Latitude:locationManager.location.coordinate.latitude
                                Longitude:locationManager.location.coordinate.longitude
-                                  UserID:userID];
+                                  UserID:userID
+                                  Active:YES];
     [locationManager startUpdatingLocation];
+    userID = nil;
+    locationID = -1;
 }
 
 -(void) stopUpdatingLocation {
@@ -80,6 +83,12 @@
         [updateLocation invalidate];
         updateLocation = nil;
     }
+    [locationParser updateLocationFromID:locationID //Ignore
+                                Latitude:locationManager.location.coordinate.latitude
+                               Longitude:locationManager.location.coordinate.longitude
+                                  UserID:userID
+                                  Active:NO];
+    [locationManager stopUpdatingLocation];
 }
 
 -(UserObject *) getCurrentUser {
@@ -96,8 +105,6 @@
         }
         self._currentUser.userID = uID;
         self._currentUser.userName = username;
-        self._currentUser.latitude = latitude;
-        self._currentUser.longitude = longitude;
         return self._currentUser;
     }
     return nil;
@@ -141,8 +148,6 @@
             UserObject *testingUser = [[UserObject alloc] init];
             testingUser.userID = uID;
             testingUser.userName = testName;
-            testingUser.latitude = latitude;
-            testingUser.longitude = longitude;
             [[AppDelegate alloc] setCurrentUser:testingUser];
         } else {
             
@@ -170,6 +175,7 @@
 
 - (void)applicationWillTerminate:(UIApplication *)application {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+    [locationParser deactivateUserFromUser:[self getCurrentUser]];
 }
 
 @end

@@ -12,7 +12,5 @@
 
 @property NSInteger userID;
 @property NSString *userName;
-@property double latitude;
-@property double longitude;
 
 @end

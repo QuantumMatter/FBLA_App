@@ -17,9 +17,12 @@
 #import "AppDelegate.h"
 #import "GroupObject.h"
 #import "GroupParser.h"
+#import "UserParser.h"
 #import "GroupControllerViewController.h"
 #import "UserViewController.h"
 #import <CoreLocation/CoreLocation.h>
+#import "LocationParser.h"
+#import "DBManager.h"
 
 @interface ViewController ()
 
@@ -33,7 +36,6 @@
     float zip;
     
     GMSMapView *mapView;
-    NSMutableArray *userArray;
     NSMutableDictionary *markerDictionary;
     NSTimer *timer;
     NSTimer *timer02;
@@ -45,6 +47,17 @@
     GroupParser *gParser;
     
     CLLocationManager *locationManager;
+    
+    UserParser *userParser;
+    NSMutableArray *userArray;
+    
+    LocationParser *locationParser;
+    NSMutableArray *locationArray;
+    NSTimer *checkUser;
+    
+    NSMutableArray *userLocations;
+    
+    UserObject *_currentUser;
 }
 
 - (void)viewDidLoad {
@@ -55,6 +68,8 @@
     locationManager.desiredAccuracy = kCLLocationAccuracyBest;
     [locationManager startUpdatingLocation];
     
+    
+    _currentUser = [self getCurrentUser];
     [self rotateButton];
     [self loadGroups];
     CGRect origin = self.bounds.frame;
@@ -78,7 +93,8 @@
     gParser = [[GroupParser alloc] init];
     timer02 = [[NSTimer alloc] init];
     timer02 = [NSTimer scheduledTimerWithTimeInterval:0.05 target:self selector:@selector(loadGroups) userInfo:nil repeats:YES];
-    UserObject *_currnetUser = [[UserObject alloc] init];
+    _currentUser = [[UserObject alloc] init];
+    _currentUser = [self getCurrentUser];
 }
 
 -(void) loadGroups {
@@ -111,16 +127,44 @@
 }
 
 -(void) loadUsers {
-    NSString *URLString = @"http://24.8.58.134/david/api/userAPI";
-    NSURL *URL = [NSURL URLWithString:URLString];
-    NSURLRequest *request = [NSURLRequest requestWithURL:URL];
-    [NSURLConnection sendAsynchronousRequest:request
-                                       queue:[NSOperationQueue mainQueue]
-                           completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-                               if (error == nil && data.length > 0) {
-                                   [self processUserData:data];
-                               }
-                           }];
+    userParser = [[UserParser alloc] init];
+    locationParser = [[LocationParser alloc] init];
+    checkUser = [[NSTimer alloc] init];
+    checkUser = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(checkUserDB) userInfo:nil repeats:YES];
+}
+
+-(void) checkUserDB {
+    if ([userParser finished] && [locationParser finished]) {
+        [checkUser invalidate];
+        [self loadUserMarkers];
+    } else {
+        
+    }
+}
+
+-(void) loadUserMarkers {
+    locationArray = [locationParser array];
+    userArray = [userParser array];
+    
+    userLocations = nil;
+    if (!userLocations) {
+        userLocations = [[NSMutableArray alloc] init];
+    }
+    
+    for (LocationObject *location in locationArray) {
+        if (location.active) {
+            for (UserObject *user in userArray) {
+                if ((location.userID == user.userID) && (user.userID != _currentUser.userID)) {
+                    GMSMarker *marker = [GMSMarker markerWithPosition:CLLocationCoordinate2DMake(location.latitude, location.longitude)];
+                    [marker setUserData:user];
+                    [userLocations addObject:marker];
+                }
+            }
+        }
+    }
+    for (GMSMarker *marker in userLocations) {
+        marker.map = mapView;
+    }
 }
 
 -(UIView *)mapView:(GMSMapView *)mapView markerInfoWindow:(GMSMarker *)marker {
@@ -149,49 +193,10 @@
     }
 }
 
--(void) processUserData:(NSData*)data {
-    NSError *error;
-    NSArray *temp = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error];
-    userArray = [[NSMutableArray alloc] init];
-    for (NSUInteger i = 0; i < [temp count]; i++) {
-        NSDictionary *tempDict = [temp objectAtIndex:i];
-        UserObject *user = [[UserObject alloc] init];
-        user.userID = [[tempDict objectForKey:@"ID"] integerValue];
-        user.userName = [tempDict valueForKey:@"Username"];
-        user.latitude = [[tempDict valueForKey:@"Latitude"] doubleValue];
-        user.longitude = [[tempDict valueForKey:@"Longitude"] doubleValue];
-        [userArray addObject:user];
-    }
-    [self updateUserDictionary];
-}
-
--(void) updateUserDictionary {
-    NSUInteger count = [userArray count];
-    for (NSUInteger i = 0; i < [userArray count]; i++) {
-        UserObject *user = [[UserObject alloc] init];
-        user = [userArray objectAtIndex:i];
-        if ([markerDictionary objectForKey:[NSString stringWithFormat:@"%ld", (long)user.userID]] == nil) {
-            CLLocationDegrees latitude = user.latitude;
-            CLLocationDegrees longitude = user.longitude;
-            GMSMarker *marker = [[GMSMarker alloc] init];
-            marker = [GMSMarker markerWithPosition:CLLocationCoordinate2DMake(latitude, longitude)];
-            marker.title = user.userName;
-            marker.userData = user;
-            marker.map = mapView;
-            [markerDictionary setObject:marker forKey:[NSString stringWithFormat:@"%ld", (long)user.userID]];
-        } else {
-            [self updateMarker:user];
-        }
-    }/*
-    if (update) {
-        [self loadUsers];
-    }*/
-}
-
 -(void) updateMarker:(UserObject *)user {
     GMSMarker *marker = [[GMSMarker alloc] init];
     marker = [markerDictionary objectForKey:[NSString stringWithFormat:@"%ld", (long)user.userID]];
-    marker.position = CLLocationCoordinate2DMake(user.latitude, user.longitude);
+    //marker.position = CLLocationCoordinate2DMake(user.latitude, user.longitude);
     marker.layer.zPosition = 10;
     marker.map = mapView;
 }
@@ -253,6 +258,25 @@
         [timer invalidate];
         timer = nil;
     }
+}
+
+-(UserObject *) getCurrentUser {
+    DBManager *db = [[DBManager alloc] initWithDatabaseFilename:@"userdb.sqlite"];
+    NSArray *array = [db loadDataFromDB:@"Select * from user"];
+    if ([array count] > 0) {
+        NSArray *userArray = [array objectAtIndex:0];
+        NSInteger uID = [[userArray objectAtIndex:0] integerValue];
+        NSString *username= [userArray objectAtIndex:1];
+        double latitude = [[userArray objectAtIndex:2] doubleValue];
+        double longitude = [[userArray objectAtIndex:3] doubleValue];
+        if (_currentUser) {
+            _currentUser = [[UserObject alloc] init];
+        }
+        _currentUser.userID = uID;
+        _currentUser.userName = username;
+        return _currentUser;
+    }
+    return nil;
 }
 
 @end

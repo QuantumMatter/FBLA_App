@@ -54,8 +54,6 @@
         }
         _currentUser.userID = uID;
         _currentUser.userName = username;
-        _currentUser.latitude = latitude;
-        _currentUser.longitude = longitude;
     }
 }
 

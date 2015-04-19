@@ -15,6 +15,7 @@
 #import "MembershipObject.h"
 #import "GroupObject.h"
 #import "DualObject.h"
+#import "LocationParser.h"
 
 @interface NavViewController ()
 @property (strong, nonatomic) IBOutlet UIButton *userButton;
@@ -44,6 +45,8 @@
     
     //Table Resources
     NSInteger index;
+    
+    LocationParser *locationParser;
 }
 
 - (IBAction)userButton:(id)sender {
@@ -139,6 +142,7 @@
     self.membershipView.delegate = self;
     self.membershipView.dataSource = self;
     [self getCurrentUser];
+    locationParser = [[LocationParser alloc] init];
     [self A];
 }
 
@@ -156,8 +160,6 @@
         }
         _currentUser.userID = uID;
         _currentUser.userName = username;
-        _currentUser.latitude = latitude;
-        _currentUser.longitude = longitude;
         [self.userButton setTitle:@"Sign Out" forState:UIControlStateNormal];
     } else {
         [self.userButton setTitle:@"Sign In" forState:UIControlStateNormal];
@@ -294,9 +296,11 @@
 -(void) signOut {
     DBManager *db = [[DBManager alloc] initWithDatabaseFilename:@"userdb.sqlite"];
     [db executeQuery:@"Delete from user where rowID like 1"];
+    UserObject *temp = _currentUser;
     _currentUser = nil;
     [self updateUserButton];
     [self.membershipView reloadData];
+    [locationParser deactivateUserFromUser:temp];
 }
 
 #pragma mark - Navigation

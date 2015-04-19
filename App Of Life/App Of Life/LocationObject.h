@@ -14,5 +14,6 @@
 @property NSInteger userID;
 @property double latitude;
 @property double longitude;
+@property bool active;
 
 @end

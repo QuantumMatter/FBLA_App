@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "LocationObject.h"
+#import "UserObject.h"
 
 @interface LocationParser : NSObject
 
@@ -19,6 +20,10 @@
 
 -(void) updateLocationFromObject:(LocationObject *)object;
 
--(void) updateLocationFromID:(NSInteger *)ID Latitude:(double)Latitude Longitude:(double)longitude UserID:(NSInteger *)UserID;
+-(void) updateLocationFromID:(NSInteger *)ID Latitude:(double)Latitude Longitude:(double)longitude UserID:(NSInteger *)UserID Active:(BOOL)Active;
+
+-(void) deactivateUserFromUser:(UserObject *)user;
+
+-(void) deactivateUserFromLocation:(LocationObject *)location;
 
 @end

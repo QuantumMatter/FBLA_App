@@ -78,8 +78,6 @@
             UserObject *testingUser = [[UserObject alloc] init];
             testingUser.userID = uID;
             testingUser.userName = testName;
-            testingUser.latitude = latitude;
-            testingUser.longitude = longitude;
             return testingUser;
         } else {
             
@@ -115,12 +113,10 @@
 -(void) registerUser:(UserObject *)user {
     NSInteger uID = user.userID;
     NSString *username = user.userName;
-    double latitude = user.latitude;
-    double longitude = user.longitude;
     self.userManager = [[DBManager alloc] initWithDatabaseFilename:@"userdb.sqlite"];
     NSArray *currentDB = [self.userManager loadDataFromDB:@"Select * from user"];
     if (currentDB.count > 0) {
-        NSString *query = [NSString stringWithFormat:@"Update user Set userID = %ld, username = '%@', latitude = %f, longitude = %f where rowID = 1", (long)uID, username, latitude, longitude];
+        NSString *query = [NSString stringWithFormat:@"Update user Set userID = %ld, username = '%@', latitude = 0, longitude = 0 where rowID = 1", (long)uID, username];
         NSLog(@"Query: %@", query);
         [self.userManager executeQuery:query];
         if (self.userManager.affectedRows != 0) {
@@ -129,7 +125,7 @@
             NSLog(@"Error occured during query");
         }
     } else {
-        NSString *query = [NSString stringWithFormat:@"Insert into user values(%ld, '%@', %f, %f)", (long)uID, username, latitude, longitude];
+        NSString *query = [NSString stringWithFormat:@"Insert into user values(%ld, '%@', 0, 0)", (long)uID, username];
         NSLog(@"Query: %@", query);
         [self.userManager executeQuery:query];
         if (self.userManager.affectedRows != 0) {
@@ -165,8 +161,6 @@
                                        if (name && pass) {
                                            realUser.userID = [[testing objectForKey:@"ID"] integerValue];
                                            realUser.userName = username;
-                                           realUser.latitude = [[testing objectForKey:@"Latitude"] doubleValue];
-                                           realUser.longitude = [[testing objectForKey:@"Longitude"] doubleValue];
                                            [self registerUser:realUser];
                                        }
                                    }

@@ -8,6 +8,7 @@
 
 #import "LocationParser.h"
 #import "LocationObject.h"
+#import "UserObject.h"
 
 @implementation LocationParser{
     NSArray *UserDataDictionaryArray;
@@ -27,10 +28,32 @@
     return self;
 }
 
--(void) updateLocationFromID:(NSInteger)ID Latitude:(double)Latitude Longitude:(double)Longitude UserID:(NSInteger)UserID {
+-(void) deactivateUserFromUser:(UserObject *)user {
+    if (user) {
+        for (LocationObject *location in LocationArray) {
+            if (location.userID == user.userID) {
+                [self deactivateUserFromLocation:location];
+                return;
+            }
+        }
+    }
+}
+
+-(void) deactivateUserFromLocation:(LocationObject *)location{
+    location.active = NO;
+    [self updateLocationFromObject:location];
+}
+
+-(void) updateLocationFromID:(NSInteger)ID Latitude:(double)Latitude Longitude:(double)Longitude UserID:(NSInteger)UserID Active:(BOOL)Active {
     NSString *stringURL = [NSString stringWithFormat:@"http://24.8.58.134/david/api/LocationAPI/%ld", (long) ID];
     NSURL *url = [NSURL URLWithString:stringURL];
-    NSString *requestString = [NSString stringWithFormat:@"ID=%ld&UserID=%ld&Latitude=%f&Longitude=%f", (long)ID, (long)UserID, Latitude, Longitude];
+    NSString *act;
+    if (Active) {
+        act = [NSString stringWithFormat:@"1"];
+    } else {
+        act = [NSString stringWithFormat:@"0"];
+    }
+    NSString *requestString = [NSString stringWithFormat:@"ID=%ld&UserID=%ld&Latitude=%f&Longitude=%f&Active=%@", (long)ID, (long)UserID, Latitude, Longitude, act];
     NSData *data = [requestString dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
     NSString *dataLength = [NSString stringWithFormat:@"%lu", (unsigned long)[data length]];
     
@@ -54,7 +77,8 @@
     [self updateLocationFromID:object.ID
                       Latitude:object.latitude
                      Longitude:object.longitude
-                        UserID:object.userID];
+                        UserID:object.userID
+                        Active:object.active];
 }
 
 -(BOOL) finished {
@@ -110,6 +134,16 @@
         
         NSInteger userID = [[temp objectForKey:@"UserID"] integerValue];
         
+        NSInteger act = [[temp objectForKey:@"Active"] integerValue];
+        
+        bool active;
+        
+        if (act == 0) {
+            active = false;
+        } else {
+            active = true;
+        }
+        
         LocationObject *location;
         location = nil;
         
@@ -121,6 +155,7 @@
         location.userID = userID;
         location.longitude = longitude;
         location.latitude = latitude;
+        location.active = active;
         
         [LocationArray addObject:location];
     }

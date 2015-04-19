@@ -13,7 +13,7 @@
 -(void) updateMarkerPosition {
     UserObject *user = self.object;
     GMSMarker *marker = self.marker;
-    marker.position = CLLocationCoordinate2DMake(user.latitude, user.longitude);
+    //marker.position = CLLocationCoordinate2DMake(user.latitude, user.longitude);
     marker.userData = self.object;
 }
 

@@ -78,9 +78,6 @@
         NSString *Username = [temp objectForKey:@"Username"];
         Username = [Username stringByReplacingOccurrencesOfString:@" " withString:@""];
         
-        double latitude = [[temp objectForKey:@"Latitude"] doubleValue];
-        double longitude = [[temp objectForKey:@"Longitude"] doubleValue];
-        
         UserObject *User;
         User = nil;
         if (!User) {
@@ -89,8 +86,6 @@
         
         User.userID = ID;
         User.userName = Username;
-        User.latitude = latitude;
-        User.longitude = longitude;
         
         [UserArray addObject:User];
     }
