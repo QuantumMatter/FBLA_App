@@ -21,6 +21,9 @@
 
 @implementation SignUpController
 
+@synthesize usernameField;
+@synthesize passwordField;
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
@@ -36,6 +39,23 @@
 }
 
 - (IBAction)signUp:(id)sender {
+    NSString *stringURL = [NSString stringWithFormat:@"http://24.8.58.134/david/api/UserAPI"];
+    NSURL *URL = [NSURL URLWithString:stringURL];
+    NSString *requestString = [NSString stringWithFormat:@"Username=%@&Password=%@&DateCreated=2015-04-13T19:24:00", usernameField.text, passwordField.text];
+    NSData *postData = [requestString dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+    NSString *dataLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:URL];
+    [request setHTTPMethod:@"POST"];
+    [request setValue:dataLength forHTTPHeaderField:@"Content-Length"];
+    [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+    [request setHTTPBody:postData];
+    NSURLConnection *conn = [[NSURLConnection alloc] initWithRequest:request delegate:self];
+    if (conn) {
+        NSLog(@"Connection Successful");
+    } else {
+        NSLog(@"Error creating Location Post");
+    }
+    
     [self performSegueWithIdentifier:@"presentHome" sender:self];
 }
 
@@ -48,5 +68,5 @@
     // Pass the selected object to the new view controller.
 }
 */
-
 @end
+
