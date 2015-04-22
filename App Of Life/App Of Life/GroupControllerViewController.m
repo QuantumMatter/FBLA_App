@@ -13,6 +13,7 @@
 #import "UserObject.h"
 #import "MembershipObject.h"
 #import "GroupObject.h"
+#import "GroupParser.h"
 #import "DualObject.h"
 #import "SubGroupObject.h"
 #import "SubMembershipObject.h"
@@ -20,6 +21,7 @@
 #import "PostViewController.h"
 #import "SubGroupParser.h"
 #import "SubMembershipParser.h"
+#import "MembershipParser.h"
 
 @interface GroupControllerViewController () {
     NSArray *indexArray;
@@ -74,17 +76,22 @@
     
     UITextField *textField;
     
-    BOOL isMember;
-    
     NSArray *initToolBar;
     
     SubGroupParser *sgParser;
     SubMembershipParser *smParser;
+    MembershipParser *membershipParser;
     NSTimer *timer;
+    
+    GroupParser *groupParser;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    sgParser = [[SubGroupParser alloc] init];
+    smParser = [[SubMembershipParser alloc] init];
+    membershipParser = [[MembershipParser alloc] init];
+    groupParser = [[GroupParser alloc] init];
     self._collectionView.delegate = self;
     self._collectionView.dataSource = self;
     [self._collectionView registerNib:[UINib nibWithNibName:@"FullEducationCell" bundle:nil] forCellWithReuseIdentifier:@"fullCell"];
@@ -93,16 +100,32 @@
     fullSize = CGSizeMake(375, 175);
     [self getCurrentUser];
     currentCell = -1;
-    isMember = NO;
     currentCell = -1;
     currentCellCount = 0;
     
-    sgParser = [[SubGroupParser alloc] init];
-    smParser = [[SubMembershipParser alloc] init];
     timer = [[NSTimer alloc] init];
     timer = [NSTimer scheduledTimerWithTimeInterval:0.05 target:self selector:@selector(A) userInfo:nil repeats:YES];
-    
-    [self A];
+}
+
+-(void) setGroupName:(NSString *)group {
+    groupName = group;
+}
+
+-(void) updateID {
+    for (GroupObject *group in [groupParser array]) {
+        if ([group.Name isEqualToString:groupName]) {
+            groupID = group.ID;
+        }
+    }
+}
+
+-(BOOL) isMember {
+    for (MembershipObject *membershipObject in [membershipParser array]) {
+        if (([membershipObject.Group integerValue] == groupID) && ([membershipObject.UserID integerValue] == _currentUser.userID)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 -(void) setButton {
@@ -110,7 +133,7 @@
         initToolBar = [self.toolBar items];
     }
     NSMutableArray *Items = [initToolBar mutableCopy];
-    if (isMember) {
+    if ([self isMember]) {
         UIBarButtonItem *btn = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash target:self action:@selector(addRemoveGroup)];
         [Items addObject:btn];
     } else {
@@ -133,7 +156,7 @@
 }
 
 -(void) addRemoveGroup {
-    if (isMember) {
+    if ([self isMember]) {
         NSString *memID;
         for (int i = 0; i < [membershipArray count]; i++) {
             MembershipObject *member = [membershipArray objectAtIndex:i];
@@ -157,11 +180,28 @@
         if (connection) {
             NSLog(@"Connection Completed Successfully");
         } else {
-            NSLog(@"Error Occured Durring Connection");
+            NSLog(@"Error Occured During Connection");
         }
         [self A];
     } else {
+        NSString *stringURL = [NSString stringWithFormat:@"http://24.8.58.134/david/api/MembershipAPI"];
+        NSURL *URL = [NSURL URLWithString:stringURL];
+        NSString *stringRequest = [NSString stringWithFormat:@"Group=%ld&Role=User&UserID=%ld", (long)groupID, (long)_currentUser.userID];
+        NSData *data = [stringRequest dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+        NSString *dataLength = [NSString stringWithFormat:@"%lu", (unsigned long)[data length]];
+        NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         
+        [request setURL:URL];
+        [request setHTTPMethod:@"POST"];
+        [request setValue:dataLength forHTTPHeaderField:@"Content-Length"];
+        [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+        [request setHTTPBody:data];
+        NSURLConnection *connection = [[NSURLConnection alloc] initWithRequest:request delegate:self];
+        if (connection) {
+            NSLog(@"Connection Successful - PUT");
+        } else {
+            NSLog(@"Connection Failed - PUT");
+        }
     }
 }
 
@@ -232,306 +272,19 @@
     } else if (subGroupArray == nil) {
         subGroupArray = [[NSMutableArray alloc] init];
         subGroupArray = [sgParser array];
+    } else if (membershipArray == nil) {
+        membershipArray = [membershipParser array];
+    } else if(groupArray == nil){
+        groupArray = [groupParser array];
     } else {
+        [self updateID];
+        [self setButton];
         [timer invalidate];
         currentCell = -1;
         currentCellCount = 0;
         [self._collectionView reloadData];
     }
 }
-
-/*-(void) A {
-    groupArray = nil;
-    groupDictionaryArray = nil;
-    groupDataDictionaryArray = nil;
-    membershipArray = nil;
-    membershipDictionaryArray = nil;
-    membershipDataDictionaryArray = nil;
-    dualArray = nil;
-    NSString *groupString = @"http://24.8.58.134/david/api/GroupApi";
-    NSURL *groupURL = [NSURL URLWithString:groupString];
-    NSURLRequest *groupRequest = [NSURLRequest requestWithURL:groupURL];
-    [NSURLConnection sendAsynchronousRequest:groupRequest
-                                       queue:[NSOperationQueue mainQueue]
-                           completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
-                               if (connectionError == nil && data.length > 0) {
-                                   [self B:data];
-                               }
-                           }];
-    
-    NSString *membershipString = @"http://24.8.58.134/david/api/MembershipAPI";
-    NSURL *membershipURL = [NSURL URLWithString:membershipString];
-    NSURLRequest *membershipRequest = [NSURLRequest requestWithURL:membershipURL];
-    [NSURLConnection sendAsynchronousRequest:membershipRequest
-                                       queue:[NSOperationQueue mainQueue]
-                           completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
-                               if (connectionError == nil && data.length > 0) {
-                                   [self C:data];
-                               }
-                           }];
-}
-
--(void) B:(NSData *)data {
-    if (!groupDataDictionaryArray) {
-        groupDataDictionaryArray = [[NSArray alloc] init];
-    }
-    NSError *error;
-    groupDataDictionaryArray = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error];
-    [self D];
-}
-
--(void) C:(NSData *)data {
-    if (!membershipDataDictionaryArray) {
-        membershipDataDictionaryArray = [[NSArray alloc] init];
-    }
-    NSError *error;
-    membershipDataDictionaryArray = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error];
-    [self E];
-}
-
--(void) D {
-    if (!groupDictionaryArray) {
-        groupDictionaryArray = [[NSMutableArray alloc] init];
-    }
-    for (int i = 0; i < [groupDataDictionaryArray count]; i++) {
-        NSDictionary *temp = [groupDataDictionaryArray objectAtIndex:i];
-        [groupDictionaryArray addObject:temp];
-    }
-    groupOK = YES;
-    if (groupOK && membershipOK) {
-        [self F];
-    }
-}
-
--(void) E {
-    if (!membershipDictionaryArray) {
-        membershipDictionaryArray = [[NSMutableArray alloc] init];
-    }
-    for (int i = 0; i < [membershipDataDictionaryArray count]; i++) {
-        NSDictionary *temp = [membershipDataDictionaryArray objectAtIndex:i];
-        [membershipDictionaryArray addObject:temp];
-    }
-    membershipOK = YES;
-    if (groupOK && membershipOK) {
-        [self F];
-    }
-}
-
--(void) F {
-    if (!groupArray) {
-        groupArray = [[NSMutableArray alloc] init];
-    } if (!membershipArray) {
-        membershipArray = [[NSMutableArray alloc] init];
-    }
-    NSInteger currentUserID = _currentUser.userID;
-    NSString *currentStringID = [NSString stringWithFormat:@"%ld", (long)currentUserID];
-    currentStringID = [currentStringID stringByReplacingOccurrencesOfString:@" " withString:@""];
-    for (int A = 0; A < [groupDictionaryArray count]; A++) {
-        NSDictionary *tempA = [groupDictionaryArray objectAtIndex:A];
-        //IDA - Group.ID
-        NSInteger temp = [[tempA objectForKey:@"ID"] integerValue];
-        NSString *IDA = [NSString stringWithFormat:@"%ld", (long)temp];
-        IDA = [IDA stringByReplacingOccurrencesOfString:@" " withString:@""];
-        NSString *nameA = [tempA objectForKey:@"Name"];
-        nameA = [nameA stringByReplacingOccurrencesOfString:@" " withString:@""];
-        for (int B = 0; B < [membershipDictionaryArray count]; B++) {
-            NSDictionary *tempB = [membershipDictionaryArray objectAtIndex:B];
-            //IDB - Membership.UserID
-            NSInteger tempC = [[tempB objectForKey:@"UserID"] integerValue];
-            NSString *IDB = [NSString stringWithFormat:@"%ld", (long)tempC];
-            IDB = [IDB stringByReplacingOccurrencesOfString:@" " withString:@""];
-            //NameB - Group ID(Name)
-            NSString *nameB = [tempB objectForKey:@"Group"];
-            nameB = [nameB stringByReplacingOccurrencesOfString:@" " withString:@""];
-            NSString *role = [tempB objectForKey:@"Role"];
-            role = [role stringByReplacingOccurrencesOfString:@" " withString:@""];
-            if ([currentStringID isEqualToString:IDB] && [IDA isEqualToString:nameB]) {
-                GroupObject *group;
-                group = nil;
-                if (!group) {
-                    group = [[GroupObject alloc] init];
-                }
-                
-                MembershipObject *membership;
-                membership = nil;
-                if (!membership) {
-                    membership = [[MembershipObject alloc] init];
-                }
-                
-                DualObject *dual;
-                dual = nil;
-                if (!dual) {
-                    dual = [[DualObject alloc] init];
-                }
-                dualArray = nil;
-                if (!dualArray) {
-                    dualArray = [[NSMutableArray alloc] init];
-                }
-                
-                group.ID = IDA;
-                group.Name = nameA;
-                group.latitude = 0;
-                group.latitude = 0;
-                [groupArray addObject:group];
-                
-                NSInteger intID = [[tempB objectForKey:@"ID"] integerValue];
-                NSString *ID = [NSString stringWithFormat:@"%ld", intID];
-                membership.ID = ID;
-                membership.UserID = currentStringID;
-                membership.Group = IDA;
-                membership.Role = role;
-                [membershipArray addObject:membership];
-                
-                dual.group = group;
-                dual.membership = membership;
-                [dualArray addObject:dual];
-                
-                isMember = YES;
-            }
-        }
-    }
-    [self setButton];
-}
-
--(void) G {
-    subGroupArray = nil;
-    subGroupDictionaryArray = nil;
-    subGroupDataDictionaryArray = nil;
-    subMembershipArray = nil;
-    subMembershipDictionaryArray = nil;
-    subMembershipDataDictionaryArray = nil;
-    subDualArray = nil;
-    NSString *groupString = @"http://24.8.58.134/david/api/subGroupAPI";
-    NSURL *groupURL = [NSURL URLWithString:groupString];
-    NSURLRequest *groupRequest = [NSURLRequest requestWithURL:groupURL];
-    [NSURLConnection sendAsynchronousRequest:groupRequest
-                                       queue:[NSOperationQueue mainQueue]
-                           completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
-                               if (connectionError == nil && data.length > 0) {
-                                   [self H:data];
-                               }
-                           }];
-    
-    NSString *membershipString = @"http://24.8.58.134/david/api/subMembershipAPI";
-    NSURL *membershipURL = [NSURL URLWithString:membershipString];
-    NSURLRequest *membershipRequest = [NSURLRequest requestWithURL:membershipURL];
-    [NSURLConnection sendAsynchronousRequest:membershipRequest
-                                       queue:[NSOperationQueue mainQueue]
-                           completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
-                               if (connectionError == nil && data.length > 0) {
-                                   [self I:data];
-                               }
-                           }];
-}
-
--(void) H:(NSData *)data {
-    if (!subGroupDataDictionaryArray) {
-        subGroupDataDictionaryArray = [[NSArray alloc] init];
-    }
-    NSString *dataString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-    NSLog(@"subGroup: %@", dataString);
-    NSError *error;
-    subGroupDataDictionaryArray = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error];
-    [self J];
-}
-
--(void) I:(NSData *)data {
-    if (!subMembershipDataDictionaryArray) {
-        subMembershipDataDictionaryArray = [[NSArray alloc] init];
-    }
-    NSString *dataString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-    NSLog(@"subMembership: %@", dataString);
-    NSError *error;
-    subMembershipDataDictionaryArray = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error];
-    [self K];
-}
-
--(void) J {
-    if (!subGroupDictionaryArray) {
-        subGroupDictionaryArray = [[NSMutableArray alloc] init];
-    }
-    for (int i = 0; i < [subGroupDataDictionaryArray count]; i++) {
-        NSDictionary *temp = [subGroupDataDictionaryArray objectAtIndex:i];
-        [subGroupDictionaryArray addObject:temp];
-    }
-    subGroupOK = YES;
-    if (subGroupOK && subMembershipOK) {
-        [self L];
-    }
-}
-
--(void) K {
-    if (!subMembershipDictionaryArray) {
-        subMembershipDictionaryArray = [[NSMutableArray alloc] init];
-    }
-    for (int i = 0; i < [subMembershipDataDictionaryArray count]; i++) {
-        NSDictionary *temp = [subMembershipDataDictionaryArray objectAtIndex:i];
-        [subMembershipDictionaryArray addObject:temp];
-    }
-    subMembershipOK = YES;
-    if (subGroupOK && subMembershipOK) {
-        [self L];
-    }
-}
-
--(void) L {
-    if (!subGroupArray) {
-        subGroupArray = [[NSMutableArray alloc] init];
-    } if (!subMembershipArray) {
-        subMembershipArray = [[NSMutableArray alloc] init];
-    }
-    for (int A = 0; A < [subGroupDictionaryArray count]; A++) {
-        for (int B = 0; B < [subMembershipDictionaryArray count]; B++) {
-            NSDictionary *tempGroup = [subGroupDictionaryArray objectAtIndex:A];
-            NSDictionary *tempMembership = [subMembershipDictionaryArray objectAtIndex:B];
-            NSInteger parentGroupID = [[tempGroup objectForKey:@"parentGroupID"] integerValue];
-            if (parentGroupID == groupID) {
-                NSInteger testUserID = [[tempMembership objectForKey:@"UserID"] integerValue];
-                if (testUserID == _currentUser.userID) {
-                    NSInteger testSubID = [[tempMembership objectForKey:@"subGroupID"] integerValue];
-                    NSInteger subGroupID = [[tempGroup objectForKey:@"ID"] integerValue];
-                    if (testSubID == subGroupID) {
-                        NSString *name = [tempGroup objectForKey:@"Name"];
-                        NSInteger pic = [[tempGroup objectForKey:@"pic"] integerValue];
-                        NSInteger ID = [[tempMembership objectForKey:@"ID"] integerValue];
-                        NSString *role = [tempMembership objectForKey:@"Role"];
-                        
-                        SubGroupObject *subGroup;
-                        subGroup = nil;
-                        if (!subGroup) {
-                            subGroup = [[SubGroupObject alloc] init];
-                        }
-                        
-                        subGroup.ID = subGroupID;
-                        subGroup.name = name;
-                        subGroup.groupID = parentGroupID;
-                        subGroup.pic = pic;
-                        
-                        [subGroupArray addObject:subGroup];
-                        
-                        SubMembershipObject *subMembership;
-                        subMembership = nil;
-                        if (!subMembership) {
-                            subMembership = [[SubMembershipObject alloc] init];
-                        }
-                        
-                        subMembership.ID = ID;
-                        subMembership.subGroupID = subGroupID;
-                        subMembership.userID = _currentUser.userID;
-                        subMembership.role = role;
-                        
-                        [subMembershipArray addObject:subMembership];
-                    }
-                }
-            }
-        }
-    }
-    membershipCount = [subMembershipArray count];
-    currentCell = -1;
-    currentCellCount = 0;
-    [self._collectionView reloadData];
-}*/
-
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.

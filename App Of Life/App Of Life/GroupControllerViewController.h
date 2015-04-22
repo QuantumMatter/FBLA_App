@@ -13,5 +13,6 @@
 @property (strong, nonatomic) IBOutlet UIBarButtonItem *titleText;
 
 -(void) setGroupID:(NSInteger)giD;
+-(void) setGroupName:(NSString *)group;
 
 @end

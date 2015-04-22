@@ -319,6 +319,7 @@
         NSString *ID = [NSString stringWithFormat:@"%ld", (long)group.ID];
         NSInteger groupID = [ID integerValue];
         [groupView setGroupID:groupID];
+        [groupView setGroupName:group.Name];
     }
     [self.parentViewController dismissViewControllerAnimated:YES completion:nil];
 }
