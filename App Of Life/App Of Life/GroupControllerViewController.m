@@ -734,7 +734,7 @@
         UIViewController *destination = segue.destinationViewController;
         destination.transitioningDelegate = top;
         [self presentViewController:destination animated:YES completion:nil];
-    } else if ([segue.identifier isEqualToString:@"presentViewController"]) {
+    } else if ([segue.identifier isEqualToString:@"presentPostView"]) {
         PostViewController *destination = [segue destinationViewController];
         [destination setGroupID:destinationPostID];
         [destination setGroupType:@"subGroup"];

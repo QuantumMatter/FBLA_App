@@ -20,6 +20,7 @@
 #import "SubMembershipParser.h"
 #import "SubMembershipObject.h"
 #import "DBManager.h"
+#import "NewPostViewController.h"
 
 @interface PostViewController () {
     NSInteger groupID;
@@ -80,7 +81,7 @@
 -(void) setArrays {
     if (subGroupArray == nil) {
         subGroupArray = [[NSMutableArray alloc] init];
-        subGroupArray = [sbParser array];        
+        subGroupArray = [sbParser array];
     } else if (postArray == nil) {
         postArray = [[NSMutableArray alloc] init];
         postArray = [parse array];
@@ -138,7 +139,12 @@
     }
     post = [applicablePosts objectAtIndex: [applicablePosts count] - (indexPath.row + 1)];
     [cell setMessage:post.message];
-    cell.Name.text = @"Test";
+    for (UserObject *user in [uParser array]) {
+        if (post.UserID == user.userID) {
+            cell.Name.text = user.userName;
+            break;
+        }
+    }
     cell.image.image = [UIImage imageNamed:@"OK"];
     [cell.content sizeToFit];
     [cell.content setNumberOfLines:0];
@@ -172,6 +178,10 @@
         UIViewController *destination = segue.destinationViewController;
         destination.transitioningDelegate = top;
         [self presentViewController:destination animated:YES completion:nil];
+    } else if([destinationName isEqualToString:@"NewPostViewController"]) {
+        NewPostViewController *destination = [segue destinationViewController];
+        [destination setType:@"subGroup"];
+        [destination setSubGroupID:groupID];
     } else {
         return;
     }
@@ -214,6 +224,9 @@
 }
 
 -(void) updateApplicableConnections {
+    if (!applicableConnections) {
+        applicableConnections = [[NSMutableArray alloc] init];
+    }
     for (int connectionPosition = 0; connectionPosition < [connectionArray count]; connectionPosition++) {
         ConnectionObject *conn;
         conn = nil;
@@ -237,7 +250,7 @@
     }
     if ([groupType isEqualToString:@"subGroup"]) {
         for (int postPosition = 0; postPosition < [postArray count]; postPosition++) {
-            for (int membershipPosition = 0; membershipPosition < [applicableMemberships count]; membershipPosition++) {
+            /*for (int membershipPosition = 0; membershipPosition < [applicableMemberships count]; membershipPosition++) {
                 PostObject *post;
                 post = nil;
                 if (!post) {
@@ -250,6 +263,16 @@
                         [applicablePosts addObject:post];
                     }
                 }
+            }*/
+            PostObject *post;
+            post = nil;
+            if (!post) {
+                post = [[PostObject alloc] init];
+            }
+            post = [postArray objectAtIndex:postPosition];
+            
+            if (post.GroupID == groupID) {
+                [applicablePosts addObject:post];
             }
         }
     } else {
@@ -264,19 +287,20 @@
             
             if (post.UserID == _currentUser.userID) {
                 [applicablePosts addObject:post];
-            }
-            
-            for (int B = 0; B < [applicableConnections count]; B++) {
+            } else {
                 
-                ConnectionObject *conn;
-                conn = nil;
-                if (!conn) {
-                    conn = [[ConnectionObject alloc] init];
-                }
-                conn = [applicableConnections objectAtIndex:B];
-                
-                if ((post.UserID == conn.ConenctionID) || (post.UserID == _currentUser.userID)) {
-                    [applicablePosts addObject:post];
+                for (int B = 0; B < [applicableConnections count]; B++) {
+                    
+                    ConnectionObject *conn;
+                    conn = nil;
+                    if (!conn) {
+                        conn = [[ConnectionObject alloc] init];
+                    }
+                    conn = [applicableConnections objectAtIndex:B];
+                    
+                    if ((post.UserID == conn.ConenctionID) || (post.UserID == _currentUser.userID)) {
+                        [applicablePosts addObject:post];
+                    }
                 }
             }
         }

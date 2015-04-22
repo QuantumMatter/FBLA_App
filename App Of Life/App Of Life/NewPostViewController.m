@@ -11,6 +11,7 @@
 #import "UserObject.h"
 #import "DBManager.h"
 #import <CoreLocation/CoreLocation.h>
+#import "PostViewController.h"
 
 @interface NewPostViewController ()
 
@@ -99,7 +100,7 @@
     NSArray *timeA = [time componentsSeparatedByString:@" "];
     NSString *realTime = [NSString stringWithFormat:@"%@T%@", [timeA objectAtIndex:0], [timeA objectAtIndex:1]];
     
-    NSString *stringRequest = [NSString stringWithFormat:@"UserID=%@&GroupID=%@&Membership=%@&Content=%@&Zip=%@&Message=%@&TimePosted=%@", UserID, GroupID, membership, content, stringZip, message, @"2015-04-13T17:24:00"];
+    NSString *stringRequest = [NSString stringWithFormat:@"UserID=%@&GroupID=%@&Membership=%@&Content=%@&Zip=%@&Message=%@&TimePosted=%@", UserID, GroupID, membership, content, @"80234", message, @"2015-04-13T17:24:00"];
     NSLog(stringRequest);
     NSData *postData = [stringRequest dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
     NSString *dataLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
@@ -123,9 +124,11 @@
     NSString *GroupID = [NSString stringWithFormat:@"%ld", ID];
     NSString *membership = @"subGroup";
     NSString *message = self._inputField.text;
-    message = [message stringByReplacingOccurrencesOfString:@" " withString:@"&*%^"];
-    NSString *content = @"__";
-    NSString *zip = [NSString  stringWithFormat:@"%f", [self getZipCode]];
+    message = [message stringByReplacingOccurrencesOfString:@" " withString:@"0123456789"];
+    NSLog(message);
+    NSString *content = @" ";
+    
+    NSString *stringZip = @"80234";
     
     NSDate *newDate;
     NSDateComponents *dateComponents = [[NSCalendar currentCalendar] components:~ NSCalendarUnitTimeZone fromDate:[NSDate date]];
@@ -135,7 +138,7 @@
     NSArray *timeA = [time componentsSeparatedByString:@" "];
     NSString *realTime = [NSString stringWithFormat:@"%@T%@", [timeA objectAtIndex:0], [timeA objectAtIndex:1]];
     
-    NSString *stringRequest = [NSString stringWithFormat:@"UserID=%@&GroupID=%@&membership=%@&content=%@&zip=%@&message=%@&TimePosted=%@", UserID, GroupID, membership, content, zip, message, @"2015-04-13T19:24:00"];
+    NSString *stringRequest = [NSString stringWithFormat:@"UserID=%@&GroupID=%@&membership=%@&content=%@&zip=%@&message=%@&TimePosted=%@", UserID, GroupID, membership, content, stringZip, message, @"2015-04-13T19:24:00"];
     NSData *postData = [stringRequest dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
     NSString *dataLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:URL];
@@ -173,6 +176,10 @@
         UIViewController *destination = segue.destinationViewController;
         destination.transitioningDelegate = top;
         [self presentViewController:destination animated:YES completion:nil];
+    } else if ([destinationName isEqualToString:@"PostViewController"]) {
+        PostViewController *destination = [segue destinationViewController];
+        [destination setGroupType:@"subGroup"];
+        [destination setGroupID:ID];
     } else {
         return;
     }
